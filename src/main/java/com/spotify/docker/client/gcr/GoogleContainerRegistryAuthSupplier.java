@@ -24,6 +24,7 @@ import com.spotify.docker.client.DockerConfigReader;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.RegistryAuth;
 import com.spotify.docker.client.messages.RegistryAuthSupplier;
+import com.spotify.docker.client.messages.RegistryConfigs;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.apache.commons.lang.NotImplementedException;
@@ -62,6 +63,12 @@ public class GoogleContainerRegistryAuthSupplier implements RegistryAuthSupplier
 
   @Override
   public RegistryAuth authForSwarm() {
+    throw new NotImplementedException();
+  }
+
+  @Override
+  public RegistryConfigs authForBuild() {
+    // TODO (mbrown): implement
     throw new NotImplementedException();
   }
 }
