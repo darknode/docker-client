@@ -2660,11 +2660,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       // RegistryAuthSupplier
       final RegistryConfigs configs = RegistryConfigs.create(singletonMap(
           registryAuth.serverAddress(),
-          RegistryConfigs.RegistryConfig.create(
-              registryAuth.serverAddress(),
-              registryAuth.username(),
-              registryAuth.password(),
-              registryAuth.email())));
+          registryAuth
+      ));
 
       this.registryAuthSupplier = new NoOpRegistryAuthSupplier(registryAuth, configs);
       return this;

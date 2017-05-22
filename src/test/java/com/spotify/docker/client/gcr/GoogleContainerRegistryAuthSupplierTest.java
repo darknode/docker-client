@@ -29,8 +29,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.spotify.docker.client.DockerConfigReader;
-import com.spotify.docker.client.gcr.GoogleContainerRegistryAuthSupplier;
-import com.spotify.docker.client.gcr.GoogleContainerRegistryCredRefresher;
 import com.spotify.docker.client.messages.RegistryAuth;
 import java.nio.file.Path;
 import org.junit.Test;
@@ -52,7 +50,7 @@ public class GoogleContainerRegistryAuthSupplierTest {
 
     googleContainerRegistryAuthSupplier.authFor("us.gcr.io/awesome-project/example-image");
     inOrder.verify(googleContainerRegistryCredRefresher).refresh();
-    inOrder.verify(dockerCfgReader).fromComfig(any(Path.class), anyString());
+    inOrder.verify(dockerCfgReader).fromConfig(any(Path.class), anyString());
   }
 
   @Test
@@ -65,7 +63,7 @@ public class GoogleContainerRegistryAuthSupplierTest {
     RegistryAuth expected =
         RegistryAuth.builder().email("no@no.com").identityToken("authorific").build();
 
-    when(dockerCfgReader.fromComfig(any(Path.class), eq("https://us.gcr.io"))).thenReturn(expected);
+    when(dockerCfgReader.fromConfig(any(Path.class), eq("https://us.gcr.io"))).thenReturn(expected);
 
     GoogleContainerRegistryAuthSupplier googleContainerRegistryAuthSupplier =
         new GoogleContainerRegistryAuthSupplier(

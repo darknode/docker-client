@@ -34,8 +34,8 @@ public interface RegistryAuthSupplier {
    * to specific image]. It's unnecessary if it's not planned to use this AuthSupplier to pull
    * images for Swarm.
    */
-  RegistryAuth authForSwarm();
+  RegistryAuth authForSwarm() throws DockerException;
 
   /** Authentication info to pass in the X-Registry-Config header when building an image. */
-  RegistryConfigs authForBuild();
+  RegistryConfigs authForBuild() throws DockerException;
 }

@@ -231,8 +231,19 @@ public class DefaultDockerClientUnitTest {
   @Test
   public void testBuildPassesMultipleRegistryConfigs() throws Exception {
     final RegistryConfigs registryConfigs = RegistryConfigs.create(ImmutableMap.of(
-        "server1", RegistryConfigs.RegistryConfig.create("server1", "u1", "p1", "e1"),
-        "server2", RegistryConfigs.RegistryConfig.create("server2", "u2", "p2", "e2")
+        "server1", RegistryAuth.builder()
+            .serverAddress("server1")
+            .username("u1")
+            .password("p1")
+            .email("e1")
+            .build(),
+
+        "server2", RegistryAuth.builder()
+            .serverAddress("server2")
+            .username("u2")
+            .password("p2")
+            .email("e2")
+            .build()
     ));
 
     final RegistryAuthSupplier authSupplier = mock(RegistryAuthSupplier.class);
@@ -260,7 +271,7 @@ public class DefaultDockerClientUnitTest {
 
     // TODO (mbrown): what to return for build response?
     server.enqueue(new MockResponse()
-            .setResponseCode(200)
+        .setResponseCode(200)
     );
 
     final Path path = Paths.get(Resources.getResource("dockerDirectory").toURI());

@@ -55,7 +55,7 @@ public class GoogleContainerRegistryAuthSupplier implements RegistryAuthSupplier
     try {
       String registryName = "https://" + imageName.split("/")[0];
       googleContainerRegistryCredRefresher.refresh();
-      return dockerCfgReader.fromComfig(configPath, registryName);
+      return dockerCfgReader.fromConfig(configPath, registryName);
     } catch (IOException ex) {
       throw new DockerException(ex);
     }
@@ -67,8 +67,12 @@ public class GoogleContainerRegistryAuthSupplier implements RegistryAuthSupplier
   }
 
   @Override
-  public RegistryConfigs authForBuild() {
-    // TODO (mbrown): implement
-    throw new NotImplementedException();
+  public RegistryConfigs authForBuild() throws DockerException {
+    try {
+      googleContainerRegistryCredRefresher.refresh();
+      return dockerCfgReader.fromConfig(dockerCfgReader.defaultConfigPath());
+    } catch (IOException ex) {
+      throw new DockerException(ex);
+    }
   }
 }
