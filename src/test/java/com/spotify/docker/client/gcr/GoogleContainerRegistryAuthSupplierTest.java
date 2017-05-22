@@ -54,7 +54,7 @@ public class GoogleContainerRegistryAuthSupplierTest {
   }
 
   @Test
-  public void authForReturnsRegisteryAuthThatMatchesRegisteryName() throws Exception {
+  public void authForReturnsRegistryAuthThatMatchesRegistryName() throws Exception {
     DockerConfigReader dockerCfgReader = mock(DockerConfigReader.class);
     GoogleContainerRegistryCredRefresher googleContainerRegistryCredRefresher =
         mock(GoogleContainerRegistryCredRefresher.class);
