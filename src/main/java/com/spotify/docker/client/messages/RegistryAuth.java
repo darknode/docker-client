@@ -71,8 +71,9 @@ public abstract class RegistryAuth {
   @JsonProperty("IdentityToken")
   public abstract String identityToken();
 
+  @Override
   public final String toString() {
-    return MoreObjects.toStringHelper(this)
+    return MoreObjects.toStringHelper(RegistryAuth.class)
         .add("username", username())
         // don't log the password or email
         .add("serverAddress", serverAddress())
@@ -152,7 +153,7 @@ public abstract class RegistryAuth {
                                     @JsonProperty("identityToken") final String identityToken,
                                     @JsonProperty("auth") final String auth) {
 
-    if (auth != null && username == null && password == null) {
+    if (auth != null) {
       final String[] authParams = Base64.decodeAsString(auth).split(":");
 
       if (authParams.length == 2) {
@@ -170,10 +171,7 @@ public abstract class RegistryAuth {
   }
 
   public static Builder builder() {
-    return new AutoValue_RegistryAuth.Builder()
-        // Default to the public Docker registry.
-        .serverAddress(DEFAULT_REGISTRY)
-        .email(DUMMY_EMAIL);
+    return new AutoValue_RegistryAuth.Builder();
   }
 
   @AutoValue.Builder
