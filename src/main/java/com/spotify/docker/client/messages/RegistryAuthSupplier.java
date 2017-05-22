@@ -23,6 +23,7 @@ package com.spotify.docker.client.messages;
 import com.spotify.docker.client.exceptions.DockerException;
 
 public interface RegistryAuthSupplier {
+
   /**
    * Returns a RegistryAuth object that works with a given registry's API [e.g. GCR].
    */
@@ -34,4 +35,7 @@ public interface RegistryAuthSupplier {
    * images for Swarm.
    */
   RegistryAuth authForSwarm();
+
+  /** Authentication info to pass in the X-Registry-Config header when building an image. */
+  RegistryConfigs authForBuild();
 }
