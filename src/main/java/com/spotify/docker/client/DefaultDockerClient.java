@@ -47,11 +47,9 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -222,7 +220,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
 
   }
-  
+
   /**
    * Hack: this {@link ProgressHandler} is meant to capture the image names
    * of an image being loaded. Weirdly enough, Docker returns the name of a newly
@@ -257,7 +255,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         if (streamMatcher.matches()) {
           imageNames.add(streamMatcher.group("image"));
         }
-        
+
       }
     }
 
@@ -275,7 +273,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private static final long DEFAULT_READ_TIMEOUT_MILLIS = SECONDS.toMillis(30);
   private static final int DEFAULT_CONNECTION_POOL_SIZE = 100;
 
-  private static final ClientConfig DEFAULT_CONFIG = new ClientConfig(
+  private final ClientConfig defaultConfig = new ClientConfig(
       ObjectMapperProvider.class,
       JacksonFeature.class,
       LogsResponseReader.class,
@@ -312,14 +310,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       new GenericType<List<ImageHistory>>() {
       };
 
-  private static final Supplier<ClientBuilder> DEFAULT_BUILDER_SUPPLIER =
-      new Supplier<ClientBuilder>() {
-        @Override
-        public ClientBuilder get() {
-          return ClientBuilder.newBuilder();
-        }
-      };
-
   private static final GenericType<List<Service>> SERVICE_LIST =
       new GenericType<List<Service>>() {
       };
@@ -327,7 +317,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private static final GenericType<List<Task>> TASK_LIST = new GenericType<List<Task>>() { };
 
   private static final GenericType<List<Node>> NODE_LIST = new GenericType<List<Node>>() { };
-  
+
   private static final GenericType<List<Secret>> SECRET_LIST = new GenericType<List<Secret>>() { };
 
   private final Client client;
@@ -381,11 +371,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
    * @param builder DefaultDockerClient builder
    */
   protected DefaultDockerClient(final Builder builder) {
-    this(builder, DEFAULT_BUILDER_SUPPLIER);
-  }
-
-  @VisibleForTesting
-  DefaultDockerClient(final Builder builder, Supplier<ClientBuilder> clientBuilderSupplier) {
     final URI originalUri = checkNotNull(builder.uri, "uri");
     this.apiVersion = builder.apiVersion();
 
@@ -409,7 +394,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .setSocketTimeout((int) builder.readTimeoutMillis)
         .build();
 
-    final ClientConfig config = DEFAULT_CONFIG
+    final ClientConfig config = defaultConfig
         .connectorProvider(new ApacheConnectorProvider())
         .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
         .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
@@ -421,7 +406,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       this.registryAuthSupplier = builder.registryAuthSupplier;
     }
 
-    this.client = clientBuilderSupplier.get().withConfig(config).build();
+    this.client = ClientBuilder.newBuilder()
+        .withConfig(config)
+        .build();
 
     // ApacheConnector doesn't respect per-request timeout settings.
     // Workaround: instead create a client with infinite read timeout,
@@ -429,7 +416,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     final RequestConfig noReadTimeoutRequestConfig = RequestConfig.copy(requestConfig)
         .setSocketTimeout((int) NO_TIMEOUT)
         .build();
-    this.noTimeoutClient = clientBuilderSupplier.get()
+    this.noTimeoutClient = ClientBuilder.newBuilder()
         .withConfig(config)
         .property(ApacheClientProperties.CONNECTION_MANAGER, noTimeoutCm)
         .property(ApacheClientProperties.REQUEST_CONFIG, noReadTimeoutRequestConfig)
@@ -1108,10 +1095,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
             .path("images")
             .path("load")
             .queryParam("quiet", "false");
-    
+
     final LoadProgressHandler loadProgressHandler = new LoadProgressHandler(handler);
     final Entity<InputStream> entity = Entity.entity(imagePayload, APPLICATION_OCTET_STREAM);
-    
+
     try (final ProgressStream load =
             request(POST, ProgressStream.class, resource,
                     resource.request(APPLICATION_JSON_TYPE), entity)) {
@@ -1979,7 +1966,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     WebTarget resource = resource().path("nodes");
     return request(GET, NODE_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
-  
+
   @Override
   public void execResizeTty(final String execId,
                             final Integer height,
@@ -2083,7 +2070,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     resource = addParameters(resource, params);
     return request(GET, NETWORK_LIST, resource, resource.request(APPLICATION_JSON_TYPE));
   }
-  
+
   @Override
   public Network inspectNetwork(String networkId) throws DockerException, InterruptedException {
     final WebTarget resource = resource().path("networks").path(networkId);
@@ -2702,6 +2689,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return new DefaultDockerClient(this);
     }
 
+    /**
+     * Adds additional headers to be sent in all requests to the Docker Remote API.
+     */
     public Builder header(String name, Object value) {
       headers.put(name, value);
       return this;
